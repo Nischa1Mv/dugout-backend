@@ -9,5 +9,4 @@ app.get('/', function (_, res) {
     res.send('working');
 });
 
-// app.use('/login', login);
 export default app;
