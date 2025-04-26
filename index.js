@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
-import app from "./app.js"
+import app from "./app.js";
+import dotenv from "dotenv";
 
-const startServer=async()=>{
+dotenv.config();
+
+const startServer = async () => {
     try {
-        await mongoose.connect(process.env.MONGO_URI, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        });
+        await mongoose.connect(process.env.MONGO_URI);
         console.log("MongoDB connected");
         app.listen(process.env.PORT, () => {
             console.log(`Server is running on port ${process.env.PORT}`);
@@ -14,5 +14,5 @@ const startServer=async()=>{
     } catch (error) {
         console.error("Error connecting to MongoDB:", error);
     }
-}
-startServer()
+};
+startServer();
