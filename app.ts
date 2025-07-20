@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
-// import signup from "./auth/signup.js";
+import signup from "./auth/signup";
 
 const app = express();
 app.use(express.json());
@@ -10,6 +10,6 @@ app.get('/', (_: Request, res: Response) => {
   res.send('working');
 });
 
-// app.post('/signup', signup);
+app.post('/signup', signup);
 
 export default app;
