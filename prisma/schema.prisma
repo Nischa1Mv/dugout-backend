@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+model User {
+  id           String         @id @default(uuid())
+  email        String         @unique
+  username     String
+  createdAt    DateTime       @default(now())
+
+  profile        Profile?
+  matchesCreated Match[]       @relation("MatchCreator")
+  matchPlayers   MatchPlayer[]
+  ballsBowled    Ball[]        @relation("Bowler")
+  ballsFaced     Ball[]        @relation("Batsman")
+}
+
+model Profile {
+  userId      String  @id
+  displayName String?
+  avatarUrl   String?
+  bio         String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Match {
+  id          String         @id @default(uuid())
+  title       String?
+  teamAName   String
+  teamBName   String
+  createdBy   String?
+  status      String         @default("scheduled") // scheduled, live, finished
+  startTime   DateTime?
+  createdAt   DateTime       @default(now())
+
+  creator     User?          @relation("MatchCreator", fields: [createdBy], references: [id])
+  players     MatchPlayer[]
+  invitees    MatchInvitee[]
+  toss        Toss?
+  innings     Inning[]
+  balls       Ball[]
+}
+
+model MatchInvitee {
+  id        String   @id @default(uuid())
+  matchId   String
+  name      String
+  email     String?
+  rsvp      String   @default("pending") // going, not_going, maybe, pending
+  createdAt DateTime @default(now())
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+}
+
+model MatchPlayer {
+  id      String  @id @default(uuid())
+  matchId String
+  userId  String?
+  team    String  // 'A' or 'B'
+  rsvp    String  @default("pending")
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  user  User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model Toss {
+  matchId   String @id
+  wonByTeam String // 'A' or 'B'
+  electedTo String // 'bat' or 'bowl'
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+}
+
+model Inning {
+  id           String   @id @default(uuid())
+  matchId      String
+  inningNumber Int
+  battingTeam  String
+  bowlingTeam  String
+  totalRuns    Int      @default(0)
+  totalWickets Int      @default(0)
+  target       Int?
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  balls Ball[]
+}
+
+model Ball {
+  id         String   @id @default(uuid())
+  matchId    String
+  inningId   String
+  overNumber Int
+  ballNumber Int
+  bowlerId   String?
+  batsmanId  String?
+  runs       Int      @default(0)
+  extras     Int      @default(0)
+  wicket     Boolean  @default(false)
+  wicketType String?
+  description String?
+
+  match    Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  inning   Inning @relation(fields: [inningId], references: [id], onDelete: Cascade)
+  bowler   User?  @relation("Bowler", fields: [bowlerId], references: [id], onDelete: SetNull)
+  batsman  User?  @relation("Batsman", fields: [batsmanId], references: [id], onDelete: SetNull)
+}
+
